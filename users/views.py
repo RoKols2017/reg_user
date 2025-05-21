@@ -1,8 +1,10 @@
 # users/views.py
-import io
-import secrets
-
+import os
+from dotenv import load_dotenv
 import qrcode
+import io
+import base64
+import secrets
 
 from django.conf import settings
 from django.contrib.auth import login
@@ -17,6 +19,8 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from .forms import CustomUserRegistrationForm
+
+load_dotenv()
 
 def register_view(request):
     if request.method == 'POST':
@@ -60,7 +64,8 @@ def email_verify_view(request, uidb64, token):
     if default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
-        return render(request, 'users/verify_email_success.html')
+        login(request, user)  # Авторизация
+        return redirect('profile')  # Или куда тебе удобно
 
     return HttpResponse("⛔ Неверный или просроченный токен")
 
@@ -71,12 +76,21 @@ def telegram_verification_qr(request):
     user_profile.telegram_verification_token = token
     user_profile.save()
 
-    bot_username = "YOUR_BOT_USERNAME"  # замени на юзернейм своего бота
-    url = f"https://t.me/{bot_username}?start={token}"
+    bot_username = os.getenv('BOT_USERNAME')
+    deeplink = f"https://t.me/{bot_username}?start={token}"
 
-    img = qrcode.make(url)
+    # Генерируем QR и преобразуем в base64 для встраивания в html
+    img = qrcode.make(deeplink)
     buf = io.BytesIO()
-    img.save(buf)
-    buf.seek(0)
+    img.save(buf, format='PNG')
+    qr_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    qr_url = f"data:image/png;base64,{qr_base64}"
 
-    return HttpResponse(buf, content_type="image/png")
+    return render(request, "users/telegram_qr.html", {
+        "qr_url": qr_url,
+        "deeplink": deeplink
+    })
+
+@login_required
+def profile_view(request):
+    return render(request, 'users/profile.html')

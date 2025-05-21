@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Привязка Telegram</h2>
+  <p>Сканируйте QR-код камерой Telegram или нажмите <a href="{{ deeplink }}">здесь</a>:</p>
+  <img src="{{ qr_url }}" alt="QR code для Telegram" width="300"/>
+{% endblock %}

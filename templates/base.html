@@ -18,7 +18,7 @@
         <ul class="navbar-nav ms-auto">
           {% if user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link" href="#">Привет, {{ user.username }}</a>
+              <a class="nav-link" href="{% url 'profile' %}">👤 {{ user.username }}</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'logout' %}">Выход</a>
@@ -43,7 +43,7 @@
   </main>
 
   <footer class="text-center text-muted py-3">
-    <small>© {{ now|date:"Y" }} Мой Django-проект</small>
+    <small>© {% now "Y" %} Мой Django-проект</small>
   </footer>
 
   {% block scripts %}{% endblock %}
