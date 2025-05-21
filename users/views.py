@@ -1,7 +1,12 @@
 # users/views.py
+import io
+import secrets
+
+import qrcode
+
+from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
@@ -58,3 +63,20 @@ def email_verify_view(request, uidb64, token):
         return render(request, 'users/verify_email_success.html')
 
     return HttpResponse("⛔ Неверный или просроченный токен")
+
+@login_required
+def telegram_verification_qr(request):
+    user_profile = request.user.profile
+    token = secrets.token_urlsafe(32)
+    user_profile.telegram_verification_token = token
+    user_profile.save()
+
+    bot_username = "YOUR_BOT_USERNAME"  # замени на юзернейм своего бота
+    url = f"https://t.me/{bot_username}?start={token}"
+
+    img = qrcode.make(url)
+    buf = io.BytesIO()
+    img.save(buf)
+    buf.seek(0)
+
+    return HttpResponse(buf, content_type="image/png")

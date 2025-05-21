@@ -9,6 +9,7 @@ class UserProfile(models.Model):
     is_telegram_verified = models.BooleanField(default=False)
     telegram_verified_at = models.DateTimeField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
+    telegram_verification_token = models.CharField(max_length=64, blank=True, null=True)
 
     def __str__(self):
         return f"Профиль {self.user.username}"
